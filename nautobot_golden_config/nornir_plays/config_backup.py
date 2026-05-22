@@ -141,10 +141,9 @@ def config_backup(job):
             )
             logger.debug("Completed configuration from devices.")
     except NornirNautobotException as err:
-        if job.job_result.task_kwargs["debug"]:
-            logger.error(
-                f"`E3027:` NornirNautobotException raised during backup tasks. Original exception message: ```{traceback.format_exc()}```"
-            )
+        logger.error(
+            f"`E3027:` NornirNautobotException raised during backup tasks. Original exception message: ```{traceback.format_exc()}```"
+        )
         # re-raise Exception if it's raised from nornir-nautobot or nautobot-app-nornir
         if str(err).startswith("`E2") or str(err).startswith("`E1"):
             raise NornirNautobotException(err) from err

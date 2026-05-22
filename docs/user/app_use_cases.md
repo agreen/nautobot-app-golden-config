@@ -65,11 +65,11 @@ To update existing settings click on one of the `Settings` name.
 |Jinja Path|A Jinja template which defines the path (within the repository) and name of the Jinja template file. e.g. `{{obj.platform.network_driver}}/{{obj.role.name}}/main.j2`|
 |Dynamic Group|The scope of devices on which Golden Config's jobs can operate. |
 |GraphQL Query|A query that is evaluated and used to render the config. The query must start with `query ($device_id: ID!)`.|
-|Enable Backup|Whether the Backup Configurations job runs for devices owned by this Setting. Defaults to `True`. When `False`, devices owned by this Setting are skipped by the Backup job and an `E3038` warning is logged.|
-|Enable Intended|Whether the Generate Intended Configurations job runs for devices owned by this Setting. Defaults to `True`. The Setting cannot be saved with this enabled unless `Sot agg query`, `Jinja repository`, `Jinja Template Path`, `Intended repository`, and `Intended Path Template` are all set.|
-|Enable Compliance|Whether the Perform Configuration Compliance job runs for devices owned by this Setting. Defaults to `True`.|
-|Enable Config Plan|Whether Config Plan generation is permitted for devices owned by this Setting. Defaults to `True`.|
-|Enable Deploy|Whether Deploy Config Plans is permitted for devices owned by this Setting. Defaults to `True`.|
+|Enable Backup|Whether the Backup Configurations job runs for devices owned by this Setting. Defaults to app-level configuration which is `True`. When `False`, devices owned by this Setting are skipped by the Backup job and an `E3038` warning is logged.|
+|Enable Intended|Whether the Generate Intended Configurations job runs for devices owned by this Setting. Defaults to app-level configuration which is `True`. The Setting cannot be saved with this enabled unless `Sot agg query`, `Jinja repository`, `Jinja Template Path`, `Intended repository`, and `Intended Path Template` are all set.|
+|Enable Compliance|Whether the Perform Configuration Compliance job runs for devices owned by this Setting. Defaults to app-level configuration which is `True`.|
+|Enable Config Plan|Whether Config Plan generation is permitted for devices owned by this Setting. Defaults to app-level configuration which is `True`.|
+|Enable Deploy|Whether Deploy Config Plans is permitted for devices owned by this Setting. Defaults to app-level configuration which is `True`.|
 
 !!! note
     Each of these will be further detailed in their respective sections.

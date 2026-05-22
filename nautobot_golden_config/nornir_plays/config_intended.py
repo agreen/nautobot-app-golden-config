@@ -106,22 +106,6 @@ def config_intended(job):
     """
     now = make_aware(datetime.now())
     logger = NornirLogger(job.job_result, job.logger.getEffectiveLevel())
-    # enabled_qs, disabled_qs = job.gc_advanced_filter.get_filtered_querysets("intended")
-    # device_filter = GCSettingsDeviceFilterSet(job.qs)
-
-    # Verify intended feature is enabled and has required settings
-    # device_filter.verify_feature_enabled(
-    #     logger,
-    #     "intended",
-    #     required_settings=["jinja_path_template", "intended_path_template", "sot_agg_query"],
-    # )
-    # if job.job_result.task_kwargs["debug"]:
-    #     for device in disabled_qs:
-    #         logger.warning(
-    #             f"E3038: Device {device.name} does not have the required settings to run the intended job. Skipping device.",
-    #             extra={"object": device},
-    #         )
-    # Retrieve filters from the Django jinja template engine
     jinja_env = get_django_env()
     try:
         with InitNornir(
