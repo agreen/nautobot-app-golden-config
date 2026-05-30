@@ -20,6 +20,7 @@ from nautobot_golden_config.models import (
     _get_hierconfig_remediation,
 )
 from nautobot_golden_config.tests.conftest import create_git_repos
+from nautobot_golden_config.utilities.constant import ENABLE_POSTPROCESSING, ENABLE_SOTAGG
 
 from .conftest import (
     create_config_compliance,
@@ -288,6 +289,50 @@ class GoldenConfigSettingModelTestCase(TestCase):
             delattr(device, "_dynamic_groups")
         self.assertIsNone(GoldenConfigSetting.objects.get_for_device(device))
 
+    def test_get_for_device_weight_tie_breaks_on_name(self):
+        """When two Settings share a weight, get_for_device returns the lower-sorted name deterministically."""
+        device = create_device()
+        winner = None
+        for name in ["zzz-setting", "aaa-setting"]:
+            tie_dynamic_group = DynamicGroup.objects.create(
+                name=f"tie dg {name}",
+                content_type=self.device_content_type,
+                filter={"name": [device.name]},
+            )
+            tie_dynamic_group.update_cached_members()
+            setting = GoldenConfigSetting.objects.create(
+                name=name,
+                slug=name,
+                weight=500,
+                description="Test Description.",
+                backup_path_template="{{ obj.location.parant.name }}/{{obj.name}}.cfg",
+                intended_path_template="{{ obj.location.name }}/{{ obj.name }}.cfg",
+                backup_test_connectivity=True,
+                jinja_repository=GitRepository.objects.get(name="test-jinja-repo-1"),
+                jinja_path_template="{{ obj.platform.name }}/main.j2",
+                backup_repository=GitRepository.objects.get(name="test-backup-repo-1"),
+                intended_repository=GitRepository.objects.get(name="test-intended-repo-1"),
+                dynamic_group=tie_dynamic_group,
+            )
+            # The alphabetically-lowest name is the expected winner regardless of creation order.
+            if winner is None or setting.name < winner.name:
+                winner = setting
+
+        self.dynamic_group.filter = {"name": [f"{device.name} nomatch"]}
+        self.dynamic_group.save()
+        self.dynamic_group.update_cached_members()
+        if hasattr(device, "_dynamic_groups"):  # clear Device.dynamic_groups cache in nautobot <2.3
+            delattr(device, "_dynamic_groups")
+        self.assertEqual(GoldenConfigSetting.objects.get_for_device(device), winner)
+
+    def test_feature_flag_defaults_track_app_config(self):
+        """enable_sotagg / enable_postprocessing field defaults follow the plugin-level config constants."""
+        self.assertEqual(GoldenConfigSetting._meta.get_field("enable_sotagg").default, ENABLE_SOTAGG)
+        self.assertEqual(GoldenConfigSetting._meta.get_field("enable_postprocessing").default, ENABLE_POSTPROCESSING)
+        instance = GoldenConfigSetting()
+        self.assertEqual(instance.enable_sotagg, ENABLE_SOTAGG)
+        self.assertEqual(instance.enable_postprocessing, ENABLE_POSTPROCESSING)
+
     def test_get_jinja_template_path_for_device(self):
         """Test get_jinja_template_path_for_device method on GoldenConfigSetting."""
         device = create_device()
@@ -330,7 +375,7 @@ class GoldenConfigSettingCleanTestCase(TestCase):
         return GoldenConfigSetting(**defaults)
 
     def test_intended_enabled_requires_jinja_and_sot_agg_fields(self):
-        """When intended is enabled, clean() must require sot_agg_query, jinja_repository, jinja_path_template."""
+        """When intended is enabled, clean() requires sot_agg_query, jinja_repository, jinja_path_template, intended_repository, and intended_path_template."""
         setting = self._make_setting(enable_intended=True)
         with self.assertRaises(ValidationError):
             setting.clean()
@@ -344,6 +389,14 @@ class GoldenConfigSettingCleanTestCase(TestCase):
             setting.clean()
 
         setting.jinja_path_template = "{{obj.platform.name}}.j2"
+        with self.assertRaises(ValidationError):
+            setting.clean()
+
+        setting.intended_repository = GitRepository.objects.get(name="test-intended-repo-1")
+        with self.assertRaises(ValidationError):
+            setting.clean()
+
+        setting.intended_path_template = "{{obj.name}}.cfg"
         setting.clean()  # should now pass
 
     def test_intended_disabled_skips_validation(self):

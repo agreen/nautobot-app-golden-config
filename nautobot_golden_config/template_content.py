@@ -91,7 +91,7 @@ class ConfigDeviceDetails(TemplateExtension):  # pylint: disable=abstract-method
         device = self.get_device()
         golden_config = GoldenConfig.objects.filter(device=device).first()
         gc_setting = GoldenConfigSetting.objects.get_for_device(device)
-        if not golden_config:
+        if not golden_config or not gc_setting:
             return ""
         extra_context = {
             "device": self.get_device(),  # device,
@@ -101,8 +101,8 @@ class ConfigDeviceDetails(TemplateExtension):  # pylint: disable=abstract-method
                 "intended": gc_setting.enable_intended,
                 "compliance": gc_setting.enable_compliance,
                 "backup": gc_setting.enable_backup,
-                "sotagg": True,  # Figure out if this is even needed
-                "postprocessing": True,  # Figure out if this is even needed
+                "sotagg": gc_setting.enable_sotagg,
+                "postprocessing": gc_setting.enable_postprocessing,
             },
         }
         return self.render(

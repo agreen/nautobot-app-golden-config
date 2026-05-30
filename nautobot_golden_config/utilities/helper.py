@@ -188,7 +188,9 @@ def get_device_to_settings_map(queryset):
                 dynamic_group__static_group_associations__associated_object_type__app_label="dcim",
                 dynamic_group__static_group_associations__associated_object_type__model="device",
             )
-            .order_by("-weight")
+            # Match Meta.ordering (`-weight`, `name`) so a weight tie resolves deterministically
+            # to the lower-sorted name rather than an arbitrary DB row.
+            .order_by("-weight", "name")
             # [:1] is a ORM/DB "limit 1" query, not a python slice.
             .values("id")[:1]
         )
@@ -326,33 +328,9 @@ def any_setting_enabled(feature):
 
     Args:
         feature: short feature name — one of ``"backup"``, ``"intended"``, ``"compliance"``,
-            ``"plan"``, ``"deploy"``.
+            ``"plan"``, ``"deploy"``, ``"sotagg"``, ``"postprocessing"``.
     """
     return models.GoldenConfigSetting.objects.filter(**{f"enable_{feature}": True}).exists()
-
-
-def get_repo_types_for_job(job_name):
-    """Return the repository types required for a given job function name.
-
-    Args:
-        job_name: one of ``"backup"``, ``"intended"``, ``"compliance"``, ``"all"``,
-            ``"plan"``, or ``"deploy"``. ``"plan"`` and ``"deploy"`` have no repo lifecycle
-            and return an empty list.
-
-    Returns:
-        list[str]: Repository field names on ``GoldenConfigSetting`` the job interacts with.
-            Empty for any value not in the recognized set above.
-    """
-    repo_types = []
-    if job_name == "backup":
-        repo_types.append("backup_repository")
-    elif job_name == "intended":
-        repo_types.extend(["jinja_repository", "intended_repository"])
-    elif job_name == "compliance":
-        repo_types.extend(["intended_repository", "backup_repository"])
-    elif job_name == "all":
-        repo_types.extend(["backup_repository", "jinja_repository", "intended_repository"])
-    return repo_types
 
 
 def format_e3038_message(device, feature, setting):

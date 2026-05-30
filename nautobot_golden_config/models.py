@@ -28,6 +28,8 @@ from nautobot_golden_config.utilities.constant import (
     ENABLE_DEPLOY,
     ENABLE_INTENDED,
     ENABLE_PLAN,
+    ENABLE_POSTPROCESSING,
+    ENABLE_SOTAGG,
     PLUGIN_CFG,
 )
 
@@ -552,7 +554,13 @@ class GoldenConfigSettingManager(BaseManager.from_queryset(RestrictedQuerySet)):
             raise ValueError("The device argument must be a Device instance.")
         dynamic_group = device.dynamic_groups.exclude(golden_config_setting__isnull=True)
         if dynamic_group.exists():
-            return dynamic_group.order_by("-golden_config_setting__weight").first().golden_config_setting
+            # Match Meta.ordering (`-weight`, `name`) so a weight tie resolves deterministically
+            # to the lower-sorted name rather than an arbitrary DB row.
+            return (
+                dynamic_group.order_by("-golden_config_setting__weight", "golden_config_setting__name")
+                .first()
+                .golden_config_setting
+            )
         return None
 
     def get_repos_for_settings(self, gcs_queryset, job_name):
@@ -695,6 +703,16 @@ class GoldenConfigSetting(PrimaryModel):  # pylint: disable=too-many-ancestors
         verbose_name="Enable Deploy",
         help_text="Whether or not deploy tasks are performed by Golden Config.",
     )
+    enable_sotagg = models.BooleanField(
+        default=ENABLE_SOTAGG,
+        verbose_name="Enable SoT Aggregation",
+        help_text="Whether or not the SoT aggregation (GraphQL) data is provided by Golden Config.",
+    )
+    enable_postprocessing = models.BooleanField(
+        default=ENABLE_POSTPROCESSING,
+        verbose_name="Enable Postprocessing",
+        help_text="Whether or not intended configuration postprocessing is performed by Golden Config.",
+    )
     is_dynamic_group_associable_model = False
 
     objects = GoldenConfigSettingManager()
@@ -727,12 +745,21 @@ class GoldenConfigSetting(PrimaryModel):  # pylint: disable=too-many-ancestors
         """Validate the scope and GraphQL query."""
         super().clean()
 
-        if self.enable_intended and (
-            not self.jinja_repository or not self.sot_agg_query or not self.jinja_path_template
-        ):
-            raise ValidationError(
-                "When Intended is enabled, you must define a `Sot agg query`, `Jinja repository` and `Jinja Template Path`."
-            )
+        if self.enable_intended:
+            required_intended_fields = {
+                "sot_agg_query": self.sot_agg_query,
+                "jinja_repository": self.jinja_repository,
+                "jinja_path_template": self.jinja_path_template,
+                "intended_repository": self.intended_repository,
+                "intended_path_template": self.intended_path_template,
+            }
+            missing = {
+                field: "This field is required when Intended is enabled."
+                for field, value in required_intended_fields.items()
+                if not value
+            }
+            if missing:
+                raise ValidationError(missing)
 
         if self.sot_agg_query:
             LOGGER.debug("GraphQL - test  query start with: `%s`", GRAPHQL_STR_START)

@@ -587,7 +587,7 @@ class GenerateConfigPlansContractTestCase(TransactionTestCase):
         captured = self.captured_names
 
         def _record(this_self):
-            captured.extend(sorted(this_self._device_qs.values_list("name", flat=True)))
+            captured.extend(sorted(this_self._device_qs.values_list("name", flat=True)))  # pylint: disable=protected-access
 
         with patch.object(jobs.GenerateConfigPlans, "_generate_config_plan_from_manual", _record):
             return create_job_result_and_run_job(

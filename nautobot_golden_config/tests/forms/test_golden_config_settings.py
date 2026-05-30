@@ -77,8 +77,8 @@ class GoldenConfigSettingFormTest(TestCase):
         )
         self.assertFalse(form.is_valid())
         self.assertEqual(
-            form.errors["__all__"][0],
-            "When Intended is enabled, you must define a `Sot agg query`, `Jinja repository` and `Jinja Template Path`.",
+            form.errors["sot_agg_query"][0],
+            "This field is required when Intended is enabled.",
         )
 
     def test_clean_up(self):

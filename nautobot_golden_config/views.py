@@ -33,7 +33,6 @@ from rest_framework.response import Response
 
 from nautobot_golden_config import details, filters, forms, models, tables
 from nautobot_golden_config.api import serializers
-from nautobot_golden_config.utilities import constant
 from nautobot_golden_config.utilities.config_postprocessing import get_config_postprocessing
 from nautobot_golden_config.utilities.graphql import graph_ql_query
 from nautobot_golden_config.utilities.helper import (
@@ -205,9 +204,11 @@ class GoldenConfigUIViewSet(  # pylint: disable=abstract-method
 
         settings = get_device_to_settings_map(queryset=Device.objects.filter(pk=self.device.pk))
         if self.device.id in settings:
-            sot_agg_query_setting = settings[self.device.id].sot_agg_query
-            if sot_agg_query_setting is not None:
-                _, self.output = graph_ql_query(request, self.device, sot_agg_query_setting.query)
+            device_setting = settings[self.device.id]
+            if not device_setting.enable_sotagg:
+                self.output = {"Error": "SoT aggregation is not enabled on the device's `Golden Config Setting`"}
+            elif device_setting.sot_agg_query is not None:
+                _, self.output = graph_ql_query(request, self.device, device_setting.sot_agg_query.query)
             else:
                 self.output = {"Error": "No saved `GraphQL Query` query was configured in the `Golden Config Setting`"}
         else:
@@ -602,35 +603,28 @@ class GoldenConfigSettingUIViewSet(views.NautobotUIViewSet):
             dg = getattr(instance, "dynamic_group", None)
             context["dg_data"] = {"Dynamic Group": dg, "Filter Query Logic": dg.filter, "Scope of Devices": dg}
 
+        backup_enabled = any_setting_enabled("backup")
+        intended_enabled = any_setting_enabled("intended")
+        deploy_enabled = any_setting_enabled("deploy")
+        compliance_enabled = any_setting_enabled("compliance")
+        plan_enabled = any_setting_enabled("plan")
+        sotagg_enabled = any_setting_enabled("sotagg")
+        all_features_enabled = [
+            backup_enabled,
+            compliance_enabled,
+            deploy_enabled,
+            intended_enabled,
+            plan_enabled,
+            sotagg_enabled,
+        ]
+
         jobs = []
-        jobs.append(["BackupJob", any_setting_enabled("backup")])
-        jobs.append(["IntendedJob", any_setting_enabled("intended")])
-        jobs.append(["DeployConfigPlans", any_setting_enabled("deploy")])
-        jobs.append(["ComplianceJob", any_setting_enabled("compliance")])
-        jobs.append(
-            [
-                "AllGoldenConfig",
-                [
-                    any_setting_enabled("backup"),
-                    any_setting_enabled("compliance"),
-                    any_setting_enabled("deploy"),
-                    any_setting_enabled("intended"),
-                    constant.ENABLE_SOTAGG,
-                ],
-            ]
-        )
-        jobs.append(
-            [
-                "AllDevicesGoldenConfig",
-                [
-                    any_setting_enabled("backup"),
-                    any_setting_enabled("compliance"),
-                    any_setting_enabled("deploy"),
-                    any_setting_enabled("intended"),
-                    constant.ENABLE_SOTAGG,
-                ],
-            ]
-        )
+        jobs.append(["BackupJob", backup_enabled])
+        jobs.append(["IntendedJob", intended_enabled])
+        jobs.append(["DeployConfigPlans", deploy_enabled])
+        jobs.append(["ComplianceJob", compliance_enabled])
+        jobs.append(["AllGoldenConfig", all_features_enabled])
+        jobs.append(["AllDevicesGoldenConfig", all_features_enabled])
         add_message(jobs, request)
         return context
 

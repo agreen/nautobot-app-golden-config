@@ -444,6 +444,8 @@ class GoldenConfigSettingFilterForm(NautobotFilterForm):
     enable_compliance = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
     enable_plan = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
     enable_deploy = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
+    enable_sotagg = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
+    enable_postprocessing = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
 
 
 class GoldenConfigSettingBulkEditForm(NautobotBulkEditForm):
@@ -457,6 +459,8 @@ class GoldenConfigSettingBulkEditForm(NautobotBulkEditForm):
     enable_compliance = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
     enable_plan = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
     enable_deploy = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
+    enable_sotagg = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
+    enable_postprocessing = django_forms.NullBooleanField(required=False, widget=forms.BulkEditNullBooleanSelect())
 
     class Meta:
         """Boilerplate form Meta data for GoldenConfigSetting."""

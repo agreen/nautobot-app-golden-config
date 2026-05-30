@@ -18,7 +18,6 @@ from nautobot_golden_config.utilities.config_postprocessing import (
     render_secrets,
 )
 from nautobot_golden_config.utilities.constant import PLUGIN_CFG
-from nautobot_golden_config.utilities.helper import get_repo_types_for_job
 
 from .conftest import create_device
 
@@ -132,6 +131,10 @@ class GetSecretFilterTestCase(TestCase):
             "supersecretvalue",
         )
 
+    @mock.patch(
+        "nautobot_golden_config.models.GoldenConfigSetting.objects.get_for_device",
+        mock.MagicMock(return_value=mock.Mock(enable_postprocessing=True)),
+    )
     def test_config_postprocessing_with_wrong_function_name(self):
         """Test that postprocessing when called with an unexistent function name, raises ValueError exception."""
         PLUGIN_CFG["postprocessing_subscribed"] = ["whatever"]
@@ -143,24 +146,22 @@ class GetSecretFilterTestCase(TestCase):
                 mock.Mock(),
             )
 
+    def test_config_postprocessing_disabled_on_winning_setting(self):
+        """Postprocessing returns the disabled message when the winning Setting has it off."""
+        self.configs.intended_config = "something"
+        with mock.patch(
+            "nautobot_golden_config.models.GoldenConfigSetting.objects.get_for_device",
+            mock.MagicMock(return_value=mock.Mock(enable_postprocessing=False)),
+        ):
+            result = get_config_postprocessing(self.configs, mock.Mock())
+        self.assertIn("not enabled", result)
 
-class GetRepoTypesForJobTestCase(TestCase):
-    """Verify the documented contract of get_repo_types_for_job."""
-
-    def test_backup_job(self):
-        self.assertEqual(get_repo_types_for_job("backup"), ["backup_repository"])
-
-    def test_intended_job(self):
-        self.assertEqual(get_repo_types_for_job("intended"), ["jinja_repository", "intended_repository"])
-
-    def test_compliance_job(self):
-        self.assertEqual(get_repo_types_for_job("compliance"), ["intended_repository", "backup_repository"])
-
-    def test_all_job(self):
-        self.assertEqual(
-            get_repo_types_for_job("all"),
-            ["backup_repository", "jinja_repository", "intended_repository"],
-        )
-
-    def test_unknown_job_returns_empty_list(self):
-        self.assertEqual(get_repo_types_for_job("does-not-exist"), [])
+    def test_config_postprocessing_no_winning_setting(self):
+        """Postprocessing returns the disabled message when the device has no winning Setting."""
+        self.configs.intended_config = "something"
+        with mock.patch(
+            "nautobot_golden_config.models.GoldenConfigSetting.objects.get_for_device",
+            mock.MagicMock(return_value=None),
+        ):
+            result = get_config_postprocessing(self.configs, mock.Mock())
+        self.assertIn("not enabled", result)

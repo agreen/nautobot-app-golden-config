@@ -434,6 +434,8 @@ class GoldenConfigSettingTable(BaseTable):
     enable_compliance = BooleanColumn()
     enable_plan = BooleanColumn()
     enable_deploy = BooleanColumn()
+    enable_sotagg = BooleanColumn()
+    enable_postprocessing = BooleanColumn()
 
     class Meta(BaseTable.Meta):
         """Meta attributes."""
@@ -449,6 +451,8 @@ class GoldenConfigSettingTable(BaseTable):
             "enable_compliance",
             "enable_plan",
             "enable_deploy",
+            "enable_sotagg",
+            "enable_postprocessing",
         )
         default_columns = (
             "pk",
@@ -460,6 +464,8 @@ class GoldenConfigSettingTable(BaseTable):
             "enable_compliance",
             "enable_plan",
             "enable_deploy",
+            "enable_sotagg",
+            "enable_postprocessing",
         )
 
 

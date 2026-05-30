@@ -102,6 +102,8 @@ golden_config_setting = ui.ObjectDetailContent(
                 "enable_compliance",
                 "enable_plan",
                 "enable_deploy",
+                "enable_sotagg",
+                "enable_postprocessing",
             ),
         ),
         ui.KeyValueTablePanel(

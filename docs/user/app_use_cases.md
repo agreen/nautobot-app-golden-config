@@ -70,6 +70,8 @@ To update existing settings click on one of the `Settings` name.
 |Enable Compliance|Whether the Perform Configuration Compliance job runs for devices owned by this Setting. Defaults to app-level configuration which is `True`.|
 |Enable Config Plan|Whether Config Plan generation is permitted for devices owned by this Setting. Defaults to app-level configuration which is `True`.|
 |Enable Deploy|Whether Deploy Config Plans is permitted for devices owned by this Setting. Defaults to app-level configuration which is `True`.|
+|Enable SoT Aggregation|Whether the SoT aggregation (GraphQL) data is provided for devices owned by this Setting. Defaults to app-level configuration which is `True`.|
+|Enable Postprocessing|Whether intended configuration postprocessing (e.g. secrets rendering) runs for devices owned by this Setting. Defaults to app-level configuration which is `False`. When `False`, the raw intended/config-set content is used unchanged.|
 
 !!! note
     Each of these will be further detailed in their respective sections.
