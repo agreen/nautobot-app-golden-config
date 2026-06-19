@@ -95,6 +95,8 @@ re.sub(r"(username\s+\S+\spassword\s+5\s+)\S+(\s+role\s+\S+)", r"\1<redacted_con
 
 ### Hashing Secrets Instead of Removing Them
 
++++ 3.1.0
+
 Replacing a secret with a static placeholder such as `<redacted_config>` discards the value entirely, so every device with a secret on that line ends up identical and the line can no longer be meaningfully compliance-checked. As an alternative, the **Replaced Text** field is Jinja-aware: instead of a static replacement you can supply a Jinja template that transforms the matched data, for example by hashing it with the [`hash_data`](https://netutils.readthedocs.io/en/latest/dev/code_reference/hash/) filter. Because the same hash filter is available when rendering your intended configuration, you can hash the same cleartext value on both sides and the backup will still be compliant, all without storing the cleartext secret in the backup.
 
 !!! note
