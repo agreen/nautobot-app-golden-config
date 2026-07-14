@@ -2,6 +2,22 @@
 {% load static %}
 
 
+{% block extra_styles %}
+    {{ block.super }}
+    {# ConfigPlan supports neither import nor export, so core's object_list template renders the "Add" #}
+    {# button's dropdown caret with an empty menu. Hide the caret to avoid an empty dropdown. #}
+    <style>
+        #actions-dropdown { display: none; }
+        /* With the caret hidden, the "Add" button is effectively standalone, but Bootstrap still */
+        /* squares its right corners because it is not the last child of the btn-group. Round them. */
+        #add-button {
+            border-top-right-radius: var(--bs-btn-border-radius, var(--bs-border-radius, 0.375rem));
+            border-bottom-right-radius: var(--bs-btn-border-radius, var(--bs-border-radius, 0.375rem));
+        }
+    </style>
+{% endblock extra_styles %}
+
+
 {% block buttons %}
     <a class="btn btn-primary" href="{% url 'plugins:nautobot_golden_config:configplan_list' %}?status=Completed" id="completed-button">
         <span aria-hidden="true" class="mdi mdi-link"></span> Completed Plans

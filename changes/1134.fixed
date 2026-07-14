@@ -1,0 +1,1 @@
+Fixed the Config Plan list view rendering an empty action-button dropdown caret and squared-off "Add" button corners; the caret is now hidden and the "Add" button renders with rounded corners.
