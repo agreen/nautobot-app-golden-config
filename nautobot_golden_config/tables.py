@@ -157,7 +157,24 @@ class ComplianceColumn(Column):
 class ConfigComplianceTable(BaseTable):
     """Table for rendering a listing of Device entries and their associated ConfigCompliance record status."""
 
-    pk = ToggleColumn(accessor=A("device"))
+    # This table is rendered from a django-pivot queryset: one row per device (features spread
+    # into columns), and each row is a plain dict rather than a model instance. The pk column's
+    # accessor "device" therefore resolves to record["device"] (the Device PK) which the custom
+    # bulk-delete relies on. data-device-pk exposes that same Device PK so the shared Execute-dropdown
+    # JS (execute_with_selected.js) reads it the same way it does on the GoldenConfig list.
+    # Cf. GoldenConfigTable class
+    pk = ToggleColumn(
+        accessor=A("device"),
+        attrs={
+            "input": {
+                #  passing attrs to ToggleColumn overrides the defaults,
+                #  so we need to re-supply ToggleColumn default classes
+                "class": "form-check-input nb-form-check-input-sm mt-2",
+                "data-device-pk": lambda record: str(record["device"] or ""),
+            },
+            "td": {"class": "nb-w-0"},
+        },
+    )
     device = TemplateColumn(
         template_code="""<a href="{% url 'plugins:nautobot_golden_config:configcompliance_devicetab' pk=record.device %}?tab=nautobot_golden_config:1"><strong>{{ record.device__name }}</strong></a> """
     )

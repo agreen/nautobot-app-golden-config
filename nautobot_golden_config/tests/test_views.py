@@ -435,6 +435,48 @@ class ConfigComplianceUIViewSetTestCase(
         # TODO: remove when ConfigComplianceUIViewSet has Change Log
         self.assertEqual(True, True)
 
+    def test_row_checkbox_exposes_device_pk(self):
+        """
+        Server-side render assertion for the Config Compliance list row checkboxes.
+
+        execute_with_selected.js reads the Device PK off each row's data-device-pk attribute. On this
+        pivot table the checkbox value is already the Device PK (accessor "device"), so data-device-pk
+        mirrors it. This keeps the shared static/nautobot_golden_config/execute_with_selected.js reading
+        device PKs the same way it does on the GoldenConfig list.
+        """
+        device = Device.objects.get(name="Device 1")
+        # The row-select column only renders for a user who can perform a bulk action. This view's
+        # bulk op is delete, so grant delete on ConfigCompliance.
+        self.add_permissions("nautobot_golden_config.delete_configcompliance")
+        # The table body is loaded via an HTMX request (Nautobot >= 3.1), so the rows (and their
+        # checkboxes) only render when the HX-Request header is set; a plain GET returns the empty shell.
+        response = self.client.get(
+            reverse("plugins:nautobot_golden_config:configcompliance_list"),
+            headers={"HX-Request": "true"},
+        )
+        self.assertEqual(response.status_code, 200)
+        html_parsed = html.fromstring(response.content.decode())
+        checkboxes = html_parsed.xpath('//input[@name="pk" and @type="checkbox" and @data-device-pk]')
+        self.assertGreater(len(checkboxes), 0)
+        # Device 1 has compliance records, so its row must expose that Device PK.
+        self.assertIn(str(device.pk), {cb.get("data-device-pk") for cb in checkboxes})
+        # On this table data-device-pk mirrors the checkbox value (both resolve to the Device PK).
+        for checkbox in checkboxes:
+            self.assertEqual(checkbox.get("data-device-pk"), checkbox.get("value"))
+
+    def test_execute_dropdown_loads_selection_script(self):
+        """
+        Server-side render assertion for the Config Compliance list Execute dropdown.
+
+        The Compliance link must be tagged with the `execute-job-link` class, and the page must load
+        execute_with_selected.js, or the selection would never be carried over to the Job run form.
+        """
+        response = self.client.get(reverse("plugins:nautobot_golden_config:configcompliance_list"))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn("execute-job-link", content)
+        self.assertIn("execute_with_selected.js", content)
+
     @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
     def test_custom_actions(self):
         """

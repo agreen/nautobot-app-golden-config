@@ -9,7 +9,7 @@
         <ul class="dropdown-menu">
             {% if compliance %}
                 <li>
-                    <a class="dropdown-item" href="{% url 'extras:job_run_by_class_path' class_path='nautobot_golden_config.jobs.ComplianceJob' %}">
+                    <a class="dropdown-item execute-job-link" href="{% url 'extras:job_run_by_class_path' class_path='nautobot_golden_config.jobs.ComplianceJob' %}">
                         <span class="mdi mdi-play-circle text-secondary" aria-hidden="true"></span> Compliance
                     </a>
                 </li>
@@ -17,3 +17,7 @@
         </ul>
     </div>
 {% endblock buttons %}
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'nautobot_golden_config/execute_with_selected.js' %}"></script>
+{% endblock javascript %}
