@@ -75,6 +75,7 @@ configurations that will change each time. A match simply means to remove.
 In order to specify line removals. Navigate to **Golden Config -> Config Removals**.  Click the **Add** button and fill out the details.
 
 The remove setting is based on `Platform`.  An example is shown below.
+
 ![Config Removals View](../images/ss1_00-navigating-backup_light.png#only-light){ .on-glb }
 ![Config Removals View](../images/ss1_00-navigating-backup_dark.png#only-dark){ .on-glb }
 
@@ -115,12 +116,15 @@ When the **Replaced Text** contains a Jinja expression (`{{ ... }}`), Golden Con
 
 #### Examples
 
+![Config Replacements with Hashing](../images/config-replacement-hashing_light.png#only-light){ .on-glb }
+![Config Replacements with Hashing](../images/config-replacement-hashing_dark.png#only-dark){ .on-glb }
+
 Hash the username and the secret on an IOS local-user line, using named capture groups for readability.
 
 Regex Pattern to Substitute:
 
 ```text
-^username (?P<user>\S+) privilege 15 secret 9 (?P<secret>\S+)$
+username (?P<user>\S+) privilege 15 secret 9 (?P<secret>\S+)
 ```
 
 Replaced Text:
@@ -140,7 +144,7 @@ The same substitution can be written with positional backreferences (`\1`, `\2`,
 Regex Pattern to Substitute:
 
 ```text
-^username (\S+) privilege 15 secret 9 (\S+)$
+username (\S+) privilege 15 secret 9 (\S+)
 ```
 
 Replaced Text:
@@ -156,7 +160,7 @@ For longer lines, rather than re-typing every static word, capture the unchangin
 Regex Pattern to Substitute:
 
 ```text
-^username (?P<user>\S+) (.+) secret 9 (?P<secret>\S+)$
+username (?P<user>\S+) (.+) secret 9 (?P<secret>\S+)
 ```
 
 Replaced Text:
