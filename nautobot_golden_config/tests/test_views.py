@@ -468,15 +468,17 @@ class ConfigComplianceUIViewSetTestCase(
             for feature in features:
                 self.assertIn(device[feature], [0, 1])
 
+    def _get_rendered_table_headers(self):
+        """Return the sortable column headers rendered in the ConfigCompliance list table."""
+        response = self.client.get(reverse("plugins:nautobot_golden_config:configcompliance_list"))
+        self.assertHttpStatus(response, 200)
+        # Only sortable columns are wrapped in an anchor, which excludes the checkbox and actions columns.
+        return [h.strip() for h in re.findall(r"<th\b[^>]*>\s*<a\s+href=[^>]*>([^<]+)", response.content.decode())]
+
     def test_table_columns(self):
         """Test the columns of the ConfigCompliance table return the expected pivoted data."""
-        response = self.client.get(reverse("plugins:nautobot_golden_config:configcompliance_list"))
         expected_table_headers = ["Device", "TestFeature0", "TestFeature1", "TestFeature2", "TestFeature3"]
-        table_headers = [
-            h.strip()
-            for h in re.findall(r'<th class="orderable"><a href=[^>]*>([^<]+)</a></th>', response.content.decode())
-        ]
-        self.assertEqual(table_headers, expected_table_headers)
+        self.assertEqual(self._get_rendered_table_headers(), expected_table_headers)
 
         # Add a new compliance feature and ensure the table headers update correctly
         device2 = Device.objects.get(name="Device 2")
@@ -490,7 +492,6 @@ class ConfigComplianceUIViewSetTestCase(
             compliance_int=1,
         )
 
-        response = self.client.get(reverse("plugins:nautobot_golden_config:configcompliance_list"))
         expected_table_headers = [
             "Device",
             "TestFeature0",
@@ -499,22 +500,13 @@ class ConfigComplianceUIViewSetTestCase(
             "TestFeature3",
             "NewTestFeature",
         ]
-        table_headers = [
-            h.strip()
-            for h in re.findall(r'<th class="orderable"><a href=[^>]*>([^<]+)</a></th>', response.content.decode())
-        ]
-        self.assertEqual(table_headers, expected_table_headers)
+        self.assertEqual(self._get_rendered_table_headers(), expected_table_headers)
 
         # Remove compliance features and ensure the table headers update correctly
         models.ConfigCompliance.objects.filter(rule__feature__name__in=["TestFeature0", "TestFeature1"]).delete()
 
-        response = self.client.get(reverse("plugins:nautobot_golden_config:configcompliance_list"))
         expected_table_headers = ["Device", "TestFeature2", "TestFeature3", "NewTestFeature"]
-        table_headers = [
-            h.strip()
-            for h in re.findall(r'<th class="orderable"><a href=[^>]*>([^<]+)</a></th>', response.content.decode())
-        ]
-        self.assertEqual(table_headers, expected_table_headers)
+        self.assertEqual(self._get_rendered_table_headers(), expected_table_headers)
 
     def test_bulk_delete_form_contains_all_objects(self):  # pylint: disable=inconsistent-return-statements
         if version.parse(settings.VERSION) < version.parse("2.3.11") and hasattr(

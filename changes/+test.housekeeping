@@ -1,0 +1,1 @@
+Fixed the regex to get the table headers in test_views.py.
