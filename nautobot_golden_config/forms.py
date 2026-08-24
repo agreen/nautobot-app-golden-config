@@ -116,8 +116,10 @@ class GoldenConfigFilterForm(DeviceRelatedFilterForm):
         "device_status",
         "device_type",
         "device",
+        "tags",
     ]
     q = django_forms.CharField(required=False, label="Search")
+    tags = forms.TagFilterField(model)
 
 
 class GoldenConfigBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
@@ -154,9 +156,11 @@ class ConfigComplianceFilterForm(DeviceRelatedFilterForm):
         "device_status",
         "device_type",
         "device",
+        "tags",
     ]
 
     q = django_forms.CharField(required=False, label="Search")
+    tags = forms.TagFilterField(model)
 
     def __init__(self, *args, **kwargs):
         """Required for status to work."""
@@ -206,6 +210,7 @@ class ComplianceRuleFilterForm(NautobotFilterForm):
     )
 
     feature = forms.DynamicModelMultipleChoiceField(queryset=models.ComplianceFeature.objects.all(), required=False)
+    tags = forms.TagFilterField(model)
 
 
 class ComplianceRuleBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
@@ -250,6 +255,7 @@ class ComplianceFeatureFilterForm(NautobotFilterForm):
     model = models.ComplianceFeature
     q = django_forms.CharField(required=False, label="Search")
     name = forms.DynamicModelChoiceField(queryset=models.ComplianceFeature.objects.all(), required=False)
+    tags = forms.TagFilterField(model)
 
 
 class ComplianceFeatureFilterFormAlt(DeviceRelatedFilterForm):  # pylint: disable=nb-sub-class-name
@@ -328,6 +334,7 @@ class ConfigRemoveFilterForm(NautobotFilterForm):
     name = forms.DynamicModelChoiceField(
         queryset=models.ConfigRemove.objects.all(), to_field_name="name", required=False
     )
+    tags = forms.TagFilterField(model)
 
 
 class ConfigRemoveBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
@@ -370,6 +377,7 @@ class ConfigReplaceFilterForm(NautobotFilterForm):
     name = forms.DynamicModelChoiceField(
         queryset=models.ConfigReplace.objects.all(), to_field_name="name", required=False
     )
+    tags = forms.TagFilterField(model)
 
 
 class ConfigReplaceBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
@@ -439,6 +447,7 @@ class GoldenConfigSettingFilterForm(NautobotFilterForm):
         queryset=GitRepository.objects.filter(provided_contents__contains="nautobot_golden_config.jinjatemplate"),
         required=False,
     )
+    tags = forms.TagFilterField(model)
 
 
 class GoldenConfigSettingBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
@@ -479,6 +488,7 @@ class RemediationSettingFilterForm(NautobotFilterForm):
         widget=django_forms.Select(),
         label="Remediation Type",
     )
+    tags = forms.TagFilterField(model)
 
 
 class RemediationSettingBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
