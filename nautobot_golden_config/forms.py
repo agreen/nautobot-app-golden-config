@@ -6,7 +6,7 @@ import json
 import django.forms as django_forms
 from django.conf import settings
 from nautobot.apps import forms
-from nautobot.apps.forms import NautobotBulkEditForm, NautobotFilterForm, NautobotModelForm
+from nautobot.apps.forms import NautobotBulkEditForm, NautobotFilterForm, NautobotModelForm, TagsBulkEditFormMixin
 from nautobot.dcim.models import Device, DeviceType, Location, Manufacturer, Platform, Rack, RackGroup
 from nautobot.extras.models import DynamicGroup, GitRepository, GraphQLQuery, JobResult, Role, Status, Tag
 from nautobot.tenancy.models import Tenant, TenantGroup
@@ -120,7 +120,7 @@ class GoldenConfigFilterForm(DeviceRelatedFilterForm):
     q = django_forms.CharField(required=False, label="Search")
 
 
-class GoldenConfigBulkEditForm(NautobotBulkEditForm):
+class GoldenConfigBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for GoldenConfig instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -208,7 +208,7 @@ class ComplianceRuleFilterForm(NautobotFilterForm):
     feature = forms.DynamicModelMultipleChoiceField(queryset=models.ComplianceFeature.objects.all(), required=False)
 
 
-class ComplianceRuleBulkEditForm(NautobotBulkEditForm):
+class ComplianceRuleBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for ComplianceRule instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -289,7 +289,7 @@ class ComplianceFeatureFilterFormAlt(DeviceRelatedFilterForm):  # pylint: disabl
         self.order_fields(self.field_order)
 
 
-class ComplianceFeatureBulkEditForm(NautobotBulkEditForm):
+class ComplianceFeatureBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for ComplianceFeature instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -330,7 +330,7 @@ class ConfigRemoveFilterForm(NautobotFilterForm):
     )
 
 
-class ConfigRemoveBulkEditForm(NautobotBulkEditForm):
+class ConfigRemoveBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for ConfigRemove instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -372,7 +372,7 @@ class ConfigReplaceFilterForm(NautobotFilterForm):
     )
 
 
-class ConfigReplaceBulkEditForm(NautobotBulkEditForm):
+class ConfigReplaceBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for ConfigReplace instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -441,7 +441,7 @@ class GoldenConfigSettingFilterForm(NautobotFilterForm):
     )
 
 
-class GoldenConfigSettingBulkEditForm(NautobotBulkEditForm):
+class GoldenConfigSettingBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for GoldenConfigSetting instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -481,7 +481,7 @@ class RemediationSettingFilterForm(NautobotFilterForm):
     )
 
 
-class RemediationSettingBulkEditForm(NautobotBulkEditForm):
+class RemediationSettingBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for RemediationSetting instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -640,7 +640,7 @@ class ConfigPlanFilterForm(DeviceRelatedFilterForm):
     tags = forms.TagFilterField(model)
 
 
-class ConfigPlanBulkEditForm(NautobotBulkEditForm):
+class ConfigPlanBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for ConfigPlan instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
@@ -660,7 +660,6 @@ class ConfigPlanBulkEditForm(NautobotBulkEditForm):
         nullable_fields = [
             "change_control_id",
             "change_control_url",
-            "tags",
         ]
 
 
