@@ -207,9 +207,10 @@ class ComplianceRuleFilterForm(NautobotFilterForm):
     )
 
     feature = forms.DynamicModelMultipleChoiceField(queryset=models.ComplianceFeature.objects.all(), required=False)
+    tags = forms.TagFilterField(model)
 
 
-class ComplianceRuleBulkEditForm(NautobotBulkEditForm, TagsBulkEditFormMixin):
+class ComplianceRuleBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """BulkEdit form for ComplianceRule instances."""
 
     pk = django_forms.ModelMultipleChoiceField(
